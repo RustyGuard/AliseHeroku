@@ -52,3 +52,14 @@ def get_distance(p1, p2):
     distance = R * c
 
     return distance
+
+
+TYPE_COUNTRY = 'country'
+TYPE_COORDINATES = 'coordinates'
+
+
+def get_geo_info(city_name, type_info):
+    if type_info == TYPE_COUNTRY:
+        return get_country(city_name)
+    elif type_info == TYPE_COORDINATES:
+        return get_coordinates(city_name)
