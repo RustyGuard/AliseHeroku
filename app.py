@@ -135,7 +135,6 @@ def play_game(res, req):
         else:
             res['response']['text'] = f'Неправильно, это {capitals[city]}.'
         res['response']['text'] += f'Теперь скажи, в какой стране {sessionStorage[user_id]["city"]}'
-        sessionStorage[user_id]['city_guessed'] = 1
 
         sessionStorage[user_id]['city_guessed'] = -1
         res['response']['buttons'] = [
@@ -195,7 +194,7 @@ def play_game(res, req):
                     }
                 ]
                 res['response']['text'] = f'Теперь скажи, в какой стране {sessionStorage[user_id]["city"]}'
-
+                sessionStorage[user_id]['city_guessed'] = 1
                 return
             else:
                 # если нет
