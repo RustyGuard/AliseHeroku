@@ -131,10 +131,12 @@ def play_game(res, req):
         city = sessionStorage[user_id]['city']
 
         if get_country(req) == capitals[city]:
-            res['response']['text'] = f'Ты прав, молодец'
+            res['response']['text'] = f'Ты прав, молодец.'
         else:
-            res['response']['text'] = f'Неправильно, это {capitals[city]}'
-        res['response']['text'] += '. Будешь продолжать?'
+            res['response']['text'] = f'Неправильно, это {capitals[city]}.'
+        res['response']['text'] += f'Теперь скажи, в какой стране {sessionStorage[user_id]["city"]}'
+        sessionStorage[user_id]['city_guessed'] = 1
+
         sessionStorage[user_id]['city_guessed'] = -1
         res['response']['buttons'] = [
             {
@@ -193,7 +195,6 @@ def play_game(res, req):
                     }
                 ]
                 res['response']['text'] = f'Теперь скажи, в какой стране {sessionStorage[user_id]["city"]}'
-                sessionStorage[user_id]['city_guessed'] = 1
 
                 return
             else:
