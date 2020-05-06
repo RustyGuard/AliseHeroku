@@ -135,7 +135,7 @@ def play_game(res, req):
         else:
             res['response']['text'] = f'Неправильно, это {capitals[city]}'
         sessionStorage[user_id]['city_guessed'] = -1
-        if not any(i in sessionStorage[user_id]['guessed_cities'] for i in cities):
+        if any(i in sessionStorage[user_id]['guessed_cities'] for i in cities):
 
             city = random.choice(list(cities))
             while city in sessionStorage[user_id]['guessed_cities']:
