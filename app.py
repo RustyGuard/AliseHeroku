@@ -148,7 +148,7 @@ def play_game(res, req):
             else:
                 res['response']['card']['title'] = f'Неправильно, это {capitals[city]}'
 
-            res['response']['card']['title'] = 'Что это за город?'
+            res['response']['card']['title'] += 'Что это за город?'
             res['response']['card']['image_id'] = cities[city][sessionStorage[user_id]['attempt'] - 1]
             res['response']['text'] += '. Теперь назови этот.'
             return
