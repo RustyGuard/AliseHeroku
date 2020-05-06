@@ -135,15 +135,24 @@ def play_game(res, req):
         else:
             res['response']['text'] = f'Неправильно, это {capitals[city]}'
         sessionStorage[user_id]['city_guessed'] = -1
-        city = random.choice(list(cities))
-        while city in sessionStorage[user_id]['guessed_cities']:
+        if sessionStorage[user_id]['attempt'] != 3:
+
             city = random.choice(list(cities))
-        sessionStorage[user_id]['city'] = city
-        res['response']['card'] = {}
-        res['response']['card']['type'] = 'BigImage'
-        res['response']['card']['title'] = 'Что это за город?'
-        res['response']['card']['image_id'] = cities[city][sessionStorage[user_id]['attempt'] - 1]
-        res['response']['text'] += '. Теперь назови этот.'
+            while city in sessionStorage[user_id]['guessed_cities']:
+                city = random.choice(list(cities))
+            sessionStorage[user_id]['city'] = city
+            res['response']['card'] = {}
+            res['response']['card']['type'] = 'BigImage'
+            if get_country(req) == capitals[city]:
+                res['response']['card']['title'] = f'Ты прав, молодец'
+            else:
+                res['response']['card']['title'] = f'Неправильно, это {capitals[city]}'
+
+            res['response']['card']['title'] = 'Что это за город?'
+            res['response']['card']['image_id'] = cities[city][sessionStorage[user_id]['attempt'] - 1]
+            res['response']['text'] += '. Теперь назови этот.'
+            return
+        res['response']['text'] = 'На этом всё.'
         return
     else:
         attempt = sessionStorage[user_id]['attempt']
