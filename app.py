@@ -1,5 +1,3 @@
-import os
-
 from flask import Flask, request
 import logging
 import json
@@ -131,11 +129,10 @@ def play_game(res, req):
         city = sessionStorage[user_id]['city']
 
         if get_country(req) == capitals[city]:
-            res['response']['text'] = f'Ты прав, молодец.'
+            res['response']['text'] = f'Ты прав, молодец'
         else:
-            res['response']['text'] = f'Неправильно, это {capitals[city]}.'
-        res['response']['text'] += f'Теперь скажи, в какой стране {sessionStorage[user_id]["city"]}'
-
+            res['response']['text'] = f'Неправильно, это {capitals[city]}'
+        res['response']['text'] += '. Будешь продолжать?'
         sessionStorage[user_id]['city_guessed'] = -1
         res['response']['buttons'] = [
             {
@@ -193,8 +190,9 @@ def play_game(res, req):
                         'url': f'https://yandex.ru/maps/?mode=search&text={city}',
                     }
                 ]
-                res['response']['text'] = f'Теперь скажи, в какой стране {sessionStorage[user_id]["city"]}'
+                res['response']['text'] = f'Теперь скажи, какая столица у {sessionStorage[user_id]["city"]}'
                 sessionStorage[user_id]['city_guessed'] = 1
+
                 return
             else:
                 # если нет
