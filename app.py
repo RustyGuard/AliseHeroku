@@ -19,7 +19,6 @@ capitals = {
     'нью-йорк': 'сша',
     'париж': 'франция',
 }
-
 sessionStorage = {}
 
 
@@ -52,7 +51,7 @@ def handle_dialog(res, req):
         sessionStorage[user_id] = {
             'first_name': None,  # здесь будет храниться имя
             'game_started': False,  # здесь информация о том, что пользователь начал игру. По умолчанию False
-            'city_guessed': -1,
+            'capital_answer': False
         }
         return
 
@@ -99,7 +98,6 @@ def handle_dialog(res, req):
                     sessionStorage[user_id]['game_started'] = True
                     # номер попытки, чтобы показывать фото по порядку
                     sessionStorage[user_id]['attempt'] = 1
-                    sessionStorage[user_id]['city_guessed'] = -1
                     # функция, которая выбирает город для игры и показывает фото
                     play_game(res, req)
             elif 'нет' in req['request']['nlu']['tokens']:
@@ -127,33 +125,33 @@ def handle_dialog(res, req):
 
 def play_game(res, req):
     user_id = req['session']['user_id']
-    if sessionStorage[user_id]['city_guessed'] == 1:
+
+    if sessionStorage[user_id]['capital_answer']:
         city = sessionStorage[user_id]['city']
-
-        if get_country(req) == capitals[city]:
-            res['response']['text'] = f'Ты прав, молодец'
+        country = get_geo(req, 'country')
+        correct_country = capitals[city.lower()]
+        if correct_country == country.lower():
+            res['response']['text'] = 'Правильно!'
         else:
-            res['response']['text'] = f'Неправильно, это {capitals[city]}'
-        sessionStorage[user_id]['city_guessed'] = -1
-        if any(i not in sessionStorage[user_id]['guessed_cities'] for i in cities):
+            res['response']['text'] = f'Неправильно, это {correct_country}.'
+        res['response']['text'] += ' Сыграем ещё?'
+        sessionStorage[user_id]['game_started'] = False
+        sessionStorage[user_id]['capital_answer'] = False
+        res['response']['buttons'] = [
+            {
+                'title': 'Да',
+                'hide': True
+            },
+            {
+                'title': 'Нет',
+                'hide': True
+            },
+            {
+                'title': 'Помощь',
+                'hide': True
+            }
+        ]
 
-            city = random.choice(list(cities))
-            while city in sessionStorage[user_id]['guessed_cities']:
-                city = random.choice(list(cities))
-            sessionStorage[user_id]['city'] = city
-            res['response']['card'] = {}
-            res['response']['card']['type'] = 'BigImage'
-            if get_country(req) == capitals[city]:
-                res['response']['card']['title'] = f'Ты прав, молодец.'
-            else:
-                res['response']['card']['title'] = f'Неправильно, это {capitals[city]}.'
-
-            res['response']['card']['title'] += 'Что это за город?'
-            res['response']['card']['image_id'] = cities[city][sessionStorage[user_id]['attempt'] - 1]
-            res['response']['text'] += '. Теперь назови этот.'
-            return
-        res['response']['text'] = 'На этом всё.'
-        return
     else:
         attempt = sessionStorage[user_id]['attempt']
         if attempt == 1:
@@ -174,24 +172,12 @@ def play_game(res, req):
             # сюда попадаем, если попытка отгадать не первая
             city = sessionStorage[user_id]['city']
             # проверяем есть ли правильный ответ в сообщение
-            if get_city(req) == city:
+            if get_geo(req, 'city') == city:
                 # если да, то добавляем город к sessionStorage[user_id]['guessed_cities'] и
                 # отправляем пользователя на второй круг. Обратите внимание на этот шаг на схеме.
+                res['response']['text'] = f'Правильно! А теперь скажи, где расположен город {city}.'
                 sessionStorage[user_id]['guessed_cities'].append(city)
-                res['response']['buttons'] = [
-                    {
-                        'title': 'Помощь',
-                        'hide': True
-                    },
-                    {
-                        'title': 'Покажи город на картах',
-                        'hide': True,
-                        'url': f'https://yandex.ru/maps/?mode=search&text={city}',
-                    }
-                ]
-                res['response']['text'] = f'Теперь скажи, какая столица у {sessionStorage[user_id]["city"]}'
-                sessionStorage[user_id]['city_guessed'] = 1
-
+                sessionStorage[user_id]['capital_answer'] = True
                 return
             else:
                 # если нет
@@ -200,22 +186,9 @@ def play_game(res, req):
                     # В этом случае говорим ответ пользователю,
                     # добавляем город к sessionStorage[user_id]['guessed_cities'] и отправляем его на второй круг.
                     # Обратите внимание на этот шаг на схеме.
-                    res['response']['text'] = f'Вы пытались. Это {city.title()}. Теперь скажи, какая столица у {sessionStorage[user_id]["city"]}'
-                    sessionStorage[user_id]['game_started'] = False
+                    res['response']['text'] = f'Вы пытались. Это {city.title()}. А теперь скажи, где расположен город {city}.'
                     sessionStorage[user_id]['guessed_cities'].append(city)
-                    res['response']['buttons'] = [
-                        {
-                            'title': 'Помощь',
-                            'hide': True
-                        },
-                        {
-                            'title': 'Покажи город на картах',
-                            'hide': True,
-                            'url': f'https://yandex.ru/maps/?mode=search&text={city}',
-                        }
-                    ]
-                    sessionStorage[user_id]['city_guessed'] = 1
-
+                    sessionStorage[user_id]['capital_answer'] = True
                     return
                 else:
                     # иначе показываем следующую картинку
@@ -228,22 +201,13 @@ def play_game(res, req):
         sessionStorage[user_id]['attempt'] += 1
 
 
-def get_city(req):
+def get_geo(req, geo_type):
     # перебираем именованные сущности
     for entity in req['request']['nlu']['entities']:
         # если тип YANDEX.GEO, то пытаемся получить город(city), если нет, то возвращаем None
         if entity['type'] == 'YANDEX.GEO':
             # возвращаем None, если не нашли сущности с типом YANDEX.GEO
-            return entity['value'].get('city', None)
-
-
-def get_country(req):
-    # перебираем именованные сущности
-    for entity in req['request']['nlu']['entities']:
-        # если тип YANDEX.GEO, то пытаемся получить город(city), если нет, то возвращаем None
-        if entity['type'] == 'YANDEX.GEO':
-            # возвращаем None, если не нашли сущности с типом YANDEX.GEO
-            return entity['value'].get('country', None)
+            return entity['value'].get(geo_type, None)
 
 
 def get_first_name(req):
