@@ -12,6 +12,7 @@ def get_coordinates(city):
 
     response = requests.get(url, params)
     json = response.json()
+    print(json)
     point_str = json['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
     point_array = [float(x) for x in point_str.split(' ')]
 
@@ -28,7 +29,7 @@ def get_country(city):
 
     response = requests.get(url, params)
     json = response.json()
-
+    print(json)
     return \
         json['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['metaDataProperty'][
             'GeocoderMetaData'][
