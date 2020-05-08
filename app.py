@@ -41,6 +41,7 @@ def handle_dialog(res, req):
         return
 
     if sessionStorage[user_id]['first_name'] is None:
+        print('No name')
         first_name = get_first_name(req)
         if first_name is None:
             res['response']['text'] = 'Не расслышала имя. Повтори, пожалуйста!'
@@ -48,6 +49,7 @@ def handle_dialog(res, req):
             sessionStorage[user_id]['first_name'] = first_name
             res['response']['text'] = f'Приятно познакомиться, {first_name.title()}. Я могу показать город или сказать расстояние между городами!'
     else:
+        print('Stonks')
         cities = get_cities(req)
         first_name = sessionStorage[user_id]['first_name']
 
