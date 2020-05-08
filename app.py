@@ -50,21 +50,26 @@ def handle_dialog(res, req):
             res['response']['text'] = f'Приятно познакомиться, {first_name.title()}. Я могу показать город или сказать расстояние между городами!'
     else:
         print('Stonks')
-        cities = get_cities(req)
         first_name = sessionStorage[user_id]['first_name']
 
+        cities = get_cities(req)
+
         if len(cities) == 0:
-            res['response']['text'] = f'{first_name.title()}, вы не написал название не одного города!'
+            print('Stonks 0')
+            res['response']['text'] = 'Ты не написал название не одного города!'
 
         elif len(cities) == 1:
-            res['response']['text'] = f'{first_name.title()}, этот город в стране - ' + get_country(cities[0])
+            print('Stonks 1')
+            res['response']['text'] = 'Этот город в стране - ' + get_country(cities[0])
 
         elif len(cities) == 2:
+            print('Stonks 2')
             distance = get_distance(get_coordinates(cities[0]), get_coordinates(cities[1]))
-            res['response']['text'] = f'{first_name.title()}, расстояние между этими городами: ' + str(round(distance)) + ' км.'
+            res['response']['text'] = 'Расстояние между этими городами: ' + str(round(distance)) + ' км.'
 
         else:
-            res['response']['text'] = f'{first_name.title()}, вы написали слишком много городов!'
+            print('Stonks >2')
+            res['response']['text'] = 'Слишком много городов!'
 
 
 def get_cities(req):
